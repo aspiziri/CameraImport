@@ -31,6 +31,7 @@ for p in p.glob('**/*.*'):
 				print("Creating directory " + config['STRUCTURE']['destination'] + '/' + taken)
 				os.mkdir(config['STRUCTURE']['destination'] + '/' + taken)
 
+	# Check if the file is an image
 	if format[len(format)-1] in config['CORE']['imgFormat']:
 
 		# Check if the image folder exists and if not create it
@@ -42,6 +43,7 @@ for p in p.glob('**/*.*'):
 		print("Copying file: " + base + config['STRUCTURE']['imgRelativePath'] + p.name)
 		copy2(p, base + config['STRUCTURE']['imgRelativePath'] + p.name)
 
+	# Check if the file is a video
 	if format[len(format)-1] in config['CORE']['videoFormat']:
 
 		# Check if the video folder exists and if not create it
