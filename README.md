@@ -52,14 +52,14 @@ Getting ths script up and running after ensuring you have the pre-requiusites in
 1. Download both the `CameraImport.py` and `config.ini` files (or clone/pull the repo) and place them in the same directory somewhere on your machine
 2. Open the `config.ini` file
 3. Make sure the file formats to scan for are updated to include your cameras supported file types (this should largely be the same for every camera but the `rawFormat` value may change
-```
+```python
 imgFormat = jpg,JPG,png,PNG,gif,GIF,tif,TIF,jpeg,JPEG
 videoFormat = mp4,MP4,avi,AVI,mov,MOV
 rawFormat = arw,ARW
 ```
 
 4. Make sure the source and destination locations are set to where your SDc ar/camera are connected and where you want to output to
-```
+```python
 source = E:
 destination = D:\Media\Camera Import
 ``` 
@@ -73,15 +73,15 @@ destination = D:\Media\Camera Import
 
 This script has two different modes that it can operate in:
 
-1. **Full Import**
-This is the "one-click" mode which will grab every single photo/video on the device and automatically import them into date seperated folders.
-
+1. **Full Import**<br />
+This is the "one-click" mode which will grab every single photo/video on the device and automatically import them into date seperated folders.<br />
+<br />
 *Use case: You want to dump all content from your camera in one go*
 
 
-2. **Selective Import**
-In this mode a you will be presented with a list of all of the dates for which you have photo/videos from and you can select which specific dates you want to import from. You will then be asked for the directory name you want to save everything to and all images/videos from that specific date will be migrated into the same folder.
-
+2. **Selective Import**<br />
+In this mode a you will be presented with a list of all of the dates for which you have photo/videos from and you can select which specific dates you want to import from. You will then be asked for the directory name you want to save everything to and all images/videos from that specific date will be migrated into the same folder.<br />
+<br />
 *Use case: You don't always clear your SD card after each shoot and you have already copied over most of it's contents in the past. Today you just want to import all the photos taken from your most recent shoot.*
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
