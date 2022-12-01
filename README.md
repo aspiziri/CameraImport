@@ -1,31 +1,16 @@
 <a name="readme-top"></a>
 
-<!-- PROJECT SHIELDS -->
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
+
+## CameraImport
+
+This is a utility that makes sorting photos and videos into a structured format simple. Given a source folder it will rename and organize all of your media based on your chosen configuration.
 
 
-<!-- PROJECT LOGO -->
-<br />
-<div align="center">
-  <h3 align="center">CameraImport</h3>
-
-  <p align="center">
-    This is a utility that makes sorting photos and videos into a structured format simple. Given a source folder it will rename and organize all of your media based on your chosen configuration.
-  </p>
-</div>
-
-
-
-<!-- ABOUT THE PROJECT -->
 ## About The Project
 
 I created this script to help me automate the tedious and repetative job of importing all of my photos and videos off my my camera after a shoot.
 
-My goal was to have this accomplish a few things:
+My goal was to have this accomplish the following:
 * Automatically find and move all photos and videos from an SD card onto my machine
 * Rename all of the files to date/time filenames for easy sorting in the future
 * Put each of the files into specific sub-folders by type based on my archiving and workflow needs
@@ -33,17 +18,15 @@ My goal was to have this accomplish a few things:
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
-
-<!-- GETTING STARTED -->
 ## Getting Started
 
 See below for details on how to get this script up and running and what options you have to customize it to your needs.
 
 ### Prerequisites
 
-* Python - Needed to run the script
-* ffmpeg - Needed for determining video attibutes used in the renaming process
-* ffprobe - Needed for determining video attibutes used in the renaming process
+* <a href="https://www.python.org/downloads/">Python</a> - Needed to run the script
+* <a href="https://ffmpeg.org/download.html">ffmpeg</a> - Needed for determining video attibutes used in the renaming process
+* <a href="https://ffmpeg.org/download.html">ffprobe</a> - Needed for determining video attibutes used in the renaming process
 
 ### Installation
 
@@ -68,24 +51,23 @@ destination = D:\Media\Camera Import
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
-<!-- USAGE EXAMPLES -->
 ## Operating modes
 
-This script has two different modes that it can operate in:
+This script has two different modes that it can operate in. Simply run the script and it will ask you which mode you want to execute in.
 
 1. **Full Import**<br />
 This is the "one-click" mode which will grab every single photo/video on the device and automatically import them into date seperated folders.<br /><br />
 *Use case: You want to dump all content from your camera in one go*
-
+<img src="http://pulseblend.com/other/CameraImport/FullImport.gif">
 
 2. **Selective Import**<br />
 In this mode a you will be presented with a list of all of the dates for which you have photo/videos from and you can select which specific dates you want to import from. You will then be asked for the directory name you want to save everything to and all images/videos from that specific date will be migrated into the same folder.<br /><br />
 *Use case: You don't always clear your SD card after each shoot and you have already copied over most of it's contents in the past. Today you just want to import all the photos taken from your most recent shoot.*
+<img src="http://pulseblend.com/other/CameraImport/SelectiveImport.gif">
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
-<!-- LICENSE -->
 ## License
 
 Distributed under the MIT License. See `LICENSE.txt` for more information.
