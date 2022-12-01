@@ -27,6 +27,7 @@ See below for details on how to get this script up and running and what options 
 * <a href="https://www.python.org/downloads/">Python</a> - Needed to run the script
 * <a href="https://ffmpeg.org/download.html">ffmpeg</a> - Needed for determining video attibutes used in the renaming process
 * <a href="https://ffmpeg.org/download.html">ffprobe</a> - Needed for determining video attibutes used in the renaming process
+* <a href="https://questionary.readthedocs.io/en/stable/pages/installation.html">Questionary</a> - Handles user input
 
 ### Installation
 

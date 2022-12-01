@@ -15,7 +15,7 @@ config.sections()
 config.read('config.ini')
 
 def printDynamic(output=""):
-    system("cls")
+    #system("cls")
     sys.stdout.write(output + '%\r')
     sys.stdout.flush()
 
@@ -51,8 +51,7 @@ def runImport(importDates, totalFiles, folderName=None):
                 # Check if the folder exists and create it if not
                 if format[len(format)-1] in config['CORE']['imgFormat'] or format[len(format)-1] in config['CORE']['videoFormat'] or format[len(format)-1] in config['CORE']['rawFormat']:
                     if not os.path.isdir(base):
-                        #print("Creating directory " + base)
-                        printDynamic("(" + str(round((i/totalFiles)*100)) + "% - " + str(i) + "/" + str(totalFiles) + ") Creating directory " + base + config['STRUCTURE']['imgRelativePath'])
+                        printDynamic("(" + str(round((i/totalFiles)*100)) + "% - " + str(i) + "/" + str(totalFiles) + ") Creating directory " + config['STRUCTURE']['imgRelativePath'])
                         os.mkdir(base)
 
                 # Check if the file is a JPG image
@@ -60,8 +59,7 @@ def runImport(importDates, totalFiles, folderName=None):
 
                     # Check if the image folder exists and if not create it
                     if not os.path.isdir(base + config['STRUCTURE']['imgRelativePath']):
-                        #print("Creating directory: " + base + config['STRUCTURE']['imgRelativePath'])
-                        printDynamic("(" + str(round((i/totalFiles)*100)) + "% - " + str(i) + "/" + str(totalFiles) + ") Creating directory: " + base + config['STRUCTURE']['imgRelativePath'])
+                        printDynamic("(" + str(round((i/totalFiles)*100)) + "% - " + str(i) + "/" + str(totalFiles) + ") Creating directory: " + config['STRUCTURE']['imgRelativePath'])
                         os.mkdir(base + config['STRUCTURE']['imgRelativePath'])
 
                     # Copy the file to its destination
@@ -69,12 +67,10 @@ def runImport(importDates, totalFiles, folderName=None):
                     if(os.path.exists(base + config['STRUCTURE']['imgRelativePath'] + takenFull + "." + format[len(format)-1])):
                         while os.path.exists(base + config['STRUCTURE']['imgRelativePath'] + takenFull + "_" + str(o) + "." + format[len(format)-1]):
                             o+=1
-                        #print("Copying file: " + base + config['STRUCTURE']['imgRelativePath'] + takenFull + "_" + str(o) + "." + format[len(format)-1])
-                        printDynamic("(" + str(round((i/totalFiles)*100)) + "% - " + str(i) + "/" + str(totalFiles) + ") Copying file: " + base + config['STRUCTURE']['imgRelativePath'] + takenFull + "_" + str(o) + "." + format[len(format)-1])
+                        printDynamic("(" + str(round((i/totalFiles)*100)) + "% - " + str(i) + "/" + str(totalFiles) + ") Copying file: " + config['STRUCTURE']['imgRelativePath'] + takenFull + "_" + str(o) + "." + format[len(format)-1])
                         copy2(p, base + config['STRUCTURE']['imgRelativePath'] + takenFull + "_" + str(o) + "." + format[len(format)-1])
                     else:
-                        #print("Copying file: " + base + config['STRUCTURE']['imgRelativePath'] + takenFull + "." + format[len(format)-1])
-                        printDynamic("(" + str(round((i/totalFiles)*100)) + "% - " + str(i) + "/" + str(totalFiles) + ") Copying file: " + base + config['STRUCTURE']['imgRelativePath'] + takenFull + "." + format[len(format)-1])
+                        printDynamic("(" + str(round((i/totalFiles)*100)) + "% - " + str(i) + "/" + str(totalFiles) + ") Copying file: " + config['STRUCTURE']['imgRelativePath'] + takenFull + "." + format[len(format)-1])
                         copy2(p, base + config['STRUCTURE']['imgRelativePath'] + takenFull + "." + format[len(format)-1])
 
                 # Check if the file is a RAW image
@@ -82,8 +78,7 @@ def runImport(importDates, totalFiles, folderName=None):
 
                     # Check if the raw folder exists and if not create it
                     if not os.path.isdir(base + config['STRUCTURE']['rawRelativePath']):
-                        #print("Creating directory: " + base + config['STRUCTURE']['rawRelativePath'])
-                        printDynamic("(" + str(round((i/totalFiles)*100)) + "% - " + str(i) + "/" + str(totalFiles) + ") Creating directory: " + base + config['STRUCTURE']['rawRelativePath'])
+                        printDynamic("(" + str(round((i/totalFiles)*100)) + "% - " + str(i) + "/" + str(totalFiles) + ") Creating directory: " + config['STRUCTURE']['rawRelativePath'])
                         os.mkdir(base + config['STRUCTURE']['rawRelativePath'])
 
                     # Copy the file to its destination
@@ -91,12 +86,10 @@ def runImport(importDates, totalFiles, folderName=None):
                     if(os.path.exists(base + config['STRUCTURE']['rawRelativePath'] + takenFull + "." + format[len(format)-1])):
                         while os.path.exists(base + config['STRUCTURE']['rawRelativePath'] + takenFull + "_" + str(o) + "." + format[len(format)-1]):
                             o+=1
-                        #print("Copying file: " + base + config['STRUCTURE']['rawRelativePath']  + takenFull + "_" + str(o) + "." + format[len(format)-1])
-                        printDynamic("(" + str(round((i/totalFiles)*100)) + "% - " + str(i) + "/" + str(totalFiles) + ") Copying file: " + base + config['STRUCTURE']['rawRelativePath']  + takenFull + "_" + str(o) + "." + format[len(format)-1])
+                        printDynamic("(" + str(round((i/totalFiles)*100)) + "% - " + str(i) + "/" + str(totalFiles) + ") Copying file: " + config['STRUCTURE']['rawRelativePath']  + takenFull + "_" + str(o) + "." + format[len(format)-1])
                         copy2(p, base + config['STRUCTURE']['rawRelativePath'] + takenFull + "_" + str(o) + "." + format[len(format)-1])
                     else:
-                        #print("Copying file: " + base + config['STRUCTURE']['rawRelativePath']  + takenFull + "." + format[len(format)-1])
-                        printDynamic("(" + str(round((i/totalFiles)*100)) + "% - " + str(i) + "/" + str(totalFiles) + ") Copying file: " + base + config['STRUCTURE']['rawRelativePath']  + takenFull + "." + format[len(format)-1])
+                        printDynamic("(" + str(round((i/totalFiles)*100)) + "% - " + str(i) + "/" + str(totalFiles) + ") Copying file: " + config['STRUCTURE']['rawRelativePath']  + takenFull + "." + format[len(format)-1])
                         copy2(p, base + config['STRUCTURE']['rawRelativePath'] + takenFull + "." + format[len(format)-1])
 
                 # Check if the file is a video
@@ -104,8 +97,7 @@ def runImport(importDates, totalFiles, folderName=None):
 
                     # Check if the video folder exists and if not create it
                     if not os.path.isdir(base + config['STRUCTURE']['videoRelativePath']):
-                        #print("Creating directory: " + base + config['STRUCTURE']['videoRelativePath'])
-                        printDynamic("(" + str(round((i/totalFiles)*100)) + "% - " + str(i) + "/" + str(totalFiles) + ") Creating directory: " + base + config['STRUCTURE']['videoRelativePath'])
+                        printDynamic("(" + str(round((i/totalFiles)*100)) + "% - " + str(i) + "/" + str(totalFiles) + ") Creating directory: " + config['STRUCTURE']['videoRelativePath'])
                         os.mkdir(base + config['STRUCTURE']['videoRelativePath'])
 
                     # Call ffprobe to pull details about the video
@@ -124,7 +116,6 @@ def runImport(importDates, totalFiles, folderName=None):
                     nameFormat = format[len(format)-1]
 
                     # Copy the file to its destination
-                    #print("Copying file: " + base + config['STRUCTURE']['videoRelativePath'] + nameDate + " - " + nameRes + " - " + nameFPS + " - " + nameDuration + "." + nameFormat)
                     printDynamic("(" + str(round((i/totalFiles)*100)) + "% - " + str(i) + "/" + str(totalFiles) + ") Copying file: " + base + config['STRUCTURE']['videoRelativePath'] + nameDate + " - " + nameRes + " - " + nameFPS + " - " + nameDuration + "." + nameFormat)
                     copy2(p, base + config['STRUCTURE']['videoRelativePath'] + nameDate + " - " + nameRes + " - " + nameFPS + " - " + nameDuration + "." + nameFormat)
 
@@ -162,7 +153,7 @@ if(importType == "Full import"):
     count = getFileCount(datesFound)
     runImport(datesFound, count)
 
-    print("Complete")
+    print("Complete                                                                                                                                  ")
 
 elif(importType == "Selective import"):
     datesSelected = questionary.checkbox("Select dates to import", choices=datesFound).ask()
