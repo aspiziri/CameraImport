@@ -75,13 +75,11 @@ This script has two different modes that it can operate in:
 
 1. **Full Import**<br />
 This is the "one-click" mode which will grab every single photo/video on the device and automatically import them into date seperated folders.<br />
-<br />
 *Use case: You want to dump all content from your camera in one go*
 
 
 2. **Selective Import**<br />
 In this mode a you will be presented with a list of all of the dates for which you have photo/videos from and you can select which specific dates you want to import from. You will then be asked for the directory name you want to save everything to and all images/videos from that specific date will be migrated into the same folder.<br />
-<br />
 *Use case: You don't always clear your SD card after each shoot and you have already copied over most of it's contents in the past. Today you just want to import all the photos taken from your most recent shoot.*
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
