@@ -42,7 +42,7 @@ videoFormat = mp4,MP4,avi,AVI,mov,MOV
 rawFormat = arw,ARW
 ```
 
-4. Make sure the source and destination locations are set to where your SDc ar/camera are connected and where you want to output to
+4. Make sure the source and destination locations are set to where your SD card/camera are connected and where you want to output to
 ```
 source = E:
 destination = D:\Media\Camera Import
