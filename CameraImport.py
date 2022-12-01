@@ -15,7 +15,7 @@ config.sections()
 config.read('config.ini')
 
 def printDynamic(output=""):
-    system("cls")g
+    system("cls")
     sys.stdout.write(output + '%\r')
     sys.stdout.flush()
 
