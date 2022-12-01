@@ -27,7 +27,7 @@ See below for details on how to get this script up and running and what options 
 * <a href="https://www.python.org/downloads/">Python</a> - Needed to run the script
 * <a href="https://ffmpeg.org/download.html">ffmpeg</a> - Needed for determining video attibutes used in the renaming process
 * <a href="https://ffmpeg.org/download.html">ffprobe</a> - Needed for determining video attibutes used in the renaming process
-* <a href="https://questionary.readthedocs.io/en/stable/pages/installation.html">Questionary</a> - Needed
+* <a href="https://questionary.readthedocs.io/en/stable/pages/installation.html">Questionary</a> - Needed to accept user input for how to run the script
 
 ### Installation
 
@@ -36,14 +36,14 @@ Getting ths script up and running after ensuring you have the pre-requiusites in
 1. Download both the `CameraImport.py` and `config.ini` files (or clone/pull the repo) and place them in the same directory somewhere on your machine
 2. Open the `config.ini` file
 3. Make sure the file formats to scan for are updated to include your cameras supported file types (this should largely be the same for every camera but the `rawFormat` value may change
-```python
+```
 imgFormat = jpg,JPG,png,PNG,gif,GIF,tif,TIF,jpeg,JPEG
 videoFormat = mp4,MP4,avi,AVI,mov,MOV
 rawFormat = arw,ARW
 ```
 
 4. Make sure the source and destination locations are set to where your SDc ar/camera are connected and where you want to output to
-```python
+```
 source = E:
 destination = D:\Media\Camera Import
 ``` 
@@ -68,6 +68,38 @@ In this mode a you will be presented with a list of all of the dates for which y
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+
+## Sub-folder structure
+
+In addition to importing your photos and videos based on date this script can also ensure each file type goes to a specific sub-folder based on the heirchy you want. 
+
+As an example, with my camera I capture both JPG and RAW copies of every photo and I also record a lot of videos. When I import I want all the RAW assets to go into a "Capture" folder as that is the structure thet my editing software, Capture One, used. The JPGs I keep around for quick reference but they can live elsewhere. Similarly I want my videos all dumped into a single spot. Given that here is the my desired output structure:
+
+```
+2022-10-01 - Arizona Road Trip
+├── Capture
+│   ├── 2022-10-01 14.24.26.ARW
+│   ├── 2022-10-01 14.31.16.ARW
+│   ├── 2022-10-01 14.32.36.ARW
+├── Videos
+│   ├── 2018-09-11 10.51.46 - 3840w - 23.976 - 12sec
+│   ├── 2018-09-11 22.06.19 - 3840w - 23.976 - 83sec.MP4
+├── 2022-10-01 14.24.26.jpg
+├── 2022-10-01 14.24.26.jpg
+├── 2022-10-01 14.24.26.jpg
+```
+
+To get this structure, I would use the following configuration:
+```
+imgRelativePath = /
+videoRelativePath = /Videos/
+rawRelativePath = /Capture/
+```
+
+This tells:
+* "images" (jpg) to go to the root `2022-10-01 - Arizona Road Trip\`
+* "videos" (mp4) to go to the root `2022-10-01 - Arizona Road Trip\Videos`
+* "raw" (ARW) to go to the root `2022-10-01 - Arizona Road Trip\Capture`
 
 ## License
 
