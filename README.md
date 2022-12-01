@@ -76,7 +76,7 @@ In addition to importing your photos and videos based on date this script can al
 As an example, with my camera I capture both JPG and RAW copies of every photo and I also record a lot of videos. When I import I want all the RAW assets to go into a "Capture" folder as that is the structure thet my editing software, Capture One, used. The JPGs I keep around for quick reference but they can live elsewhere. Similarly I want my videos all dumped into a single spot. Given that here is the my desired output structure:
 
 ```
-2022-10-01 - Arizona Road Trip
+2022-10-01
 ├── Capture
 │   ├── 2022-10-01 14.24.26.ARW
 │   ├── 2022-10-01 14.31.16.ARW
@@ -97,9 +97,9 @@ rawRelativePath = /Capture/
 ```
 
 This tells:
-* "images" (jpg) to go to the root `2022-10-01 - Arizona Road Trip\`
-* "videos" (mp4) to go to the root `2022-10-01 - Arizona Road Trip\Videos`
-* "raw" (ARW) to go to the root `2022-10-01 - Arizona Road Trip\Capture`
+* "images" (jpg) to go to the root `\2022-10-01\`
+* "videos" (mp4) to go to the root `\2022-10-01\Videos\`
+* "raw" (ARW) to go to the root `\2022-10-01\Capture\`
 
 ## License
 
