@@ -97,9 +97,9 @@ rawRelativePath = /Capture/
 ```
 
 This tells:
-* "images" (jpg) to go to the root `\2022-10-01\`
-* "videos" (mp4) to go to the root `\2022-10-01\Videos\`
-* "raw" (ARW) to go to the root `\2022-10-01\Capture\`
+* "images" (jpg) to go to `\2022-10-01\`
+* "videos" (mp4) to go to `\2022-10-01\Videos\`
+* "raw" (ARW) to go to `\2022-10-01\Capture\`
 
 ## License
 
