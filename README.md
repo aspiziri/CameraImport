@@ -12,7 +12,7 @@ I created this script to help me automate the tedious and repetative job of impo
 
 My goal was to have this accomplish the following:
 * Automatically find and move all photos and videos from an SD card onto my machine
-* Rename all of the files to date/time filenames for easy sorting in the future
+* Rename all of the files to date/time filenames for easy sorting in the future. Additionally for video files include key information such as duration, resolution and framerate.
 * Put each of the files into specific sub-folders by type based on my archiving and workflow needs
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
