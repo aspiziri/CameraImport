@@ -82,11 +82,11 @@ As an example, with my camera I capture both JPG and RAW copies of every photo a
 │   ├── 2022-10-01 14.31.16.ARW
 │   ├── 2022-10-01 14.32.36.ARW
 ├── Videos
-│   ├── 2018-09-11 10.51.46 - 3840w - 23.976 - 12sec
+│   ├── 2018-09-11 10.51.46 - 3840w - 23.976 - 12sec.MP4
 │   ├── 2018-09-11 22.06.19 - 3840w - 23.976 - 83sec.MP4
-├── 2022-10-01 14.24.26.jpg
-├── 2022-10-01 14.31.16.jpg
-├── 2022-10-01 14.32.36.jpg
+├── 2022-10-01 14.24.26.JPG
+├── 2022-10-01 14.31.16.JPG
+├── 2022-10-01 14.32.36.JPG
 ```
 
 To get this structure, I would use the following configuration:
@@ -97,8 +97,8 @@ rawRelativePath = /Capture/
 ```
 
 This tells:
-* "images" (jpg) to go to `\2022-10-01\`
-* "videos" (mp4) to go to `\2022-10-01\Videos\`
+* "images" (JPG) to go to `\2022-10-01\`
+* "videos" (MP4) to go to `\2022-10-01\Videos\`
 * "raw" (ARW) to go to `\2022-10-01\Capture\`
 
 ## License
