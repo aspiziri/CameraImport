@@ -1,16 +1,17 @@
 <script>
-  const version = '4.0.0';
+  const version = '0.1.0';
 </script>
 
 <header class="header">
   <div class="logo">
     <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
       <rect width="32" height="32" rx="8" fill="#4F46E5"/>
-      <path d="M16 10L8 14V22L16 26L24 22V14L16 10Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M8 14L16 18L24 14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M16 18V26" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="7" y="12" width="18" height="13" rx="2" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="16" cy="18.5" r="3.5" stroke="white" stroke-width="2"/>
+      <path d="M12 12L13.5 8.5C13.7 8.1 14.1 8 14.5 8H17.5C17.9 8 18.3 8.1 18.5 8.5L20 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="21.5" cy="14.5" r="0.75" fill="white"/>
     </svg>
-    <h1>CameraImport</h1>
+    <h1>Camera Import</h1>
     <span class="version">v{version}</span>
   </div>
 </header>

@@ -22,7 +22,7 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:  "CameraImport",
+		Title:  "Camera Import",
 		Width:  1200,
 		Height: 800,
 		AssetServer: &assetserver.Options{
