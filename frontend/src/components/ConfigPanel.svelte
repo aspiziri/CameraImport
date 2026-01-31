@@ -5,6 +5,7 @@
 
   const dispatch = createEventDispatcher();
   let scanning = false;
+  let showAdvanced = false;
 
   async function selectFolder(type) {
     try {
@@ -78,7 +79,7 @@
 
 <div class="config-panel">
   <div class="panel-header">
-    <h2>Configuration</h2>
+    <h2>Step 1) Find Your Media</h2>
   </div>
 
   <div class="panel-content">
@@ -118,35 +119,46 @@
 
     <div class="divider"></div>
 
-    <div class="config-section">
-      <label>Image Formats</label>
-      <input
-        type="text"
-        bind:value={config.imgFormats}
-        placeholder="jpg, png, gif"
-        on:change={() => updateConfig('imgFormats', config.imgFormats)}
-      />
-    </div>
+    <button
+      class="btn-advanced"
+      on:click={() => showAdvanced = !showAdvanced}
+    >
+      {showAdvanced ? '▼' : '▶'} Advanced Settings
+    </button>
 
-    <div class="config-section">
-      <label>Video Formats</label>
-      <input
-        type="text"
-        bind:value={config.videoFormats}
-        placeholder="mp4, avi, mov"
-        on:change={() => updateConfig('videoFormats', config.videoFormats)}
-      />
-    </div>
+    {#if showAdvanced}
+      <div class="advanced-section">
+        <div class="config-section">
+          <label>Image Formats</label>
+          <input
+            type="text"
+            bind:value={config.imgFormats}
+            placeholder="jpg, png, gif"
+            on:change={() => updateConfig('imgFormats', config.imgFormats)}
+          />
+        </div>
 
-    <div class="config-section">
-      <label>RAW Formats</label>
-      <input
-        type="text"
-        bind:value={config.rawFormats}
-        placeholder="arw, cr2, nef"
-        on:change={() => updateConfig('rawFormats', config.rawFormats)}
-      />
-    </div>
+        <div class="config-section">
+          <label>Video Formats</label>
+          <input
+            type="text"
+            bind:value={config.videoFormats}
+            placeholder="mp4, avi, mov"
+            on:change={() => updateConfig('videoFormats', config.videoFormats)}
+          />
+        </div>
+
+        <div class="config-section">
+          <label>RAW Formats</label>
+          <input
+            type="text"
+            bind:value={config.rawFormats}
+            placeholder="arw, cr2, nef"
+            on:change={() => updateConfig('rawFormats', config.rawFormats)}
+          />
+        </div>
+      </div>
+    {/if}
   </div>
 </div>
 
@@ -261,5 +273,32 @@
     height: 1px;
     background: rgba(255, 255, 255, 0.1);
     margin: 8px 0;
+  }
+
+  .btn-advanced {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: #999;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    width: 100%;
+  }
+
+  .btn-advanced:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+  }
+
+  .advanced-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
   }
 </style>

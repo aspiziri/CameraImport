@@ -46,7 +46,7 @@
 
 <div class="file-preview">
   <div class="preview-header">
-    <h2>Files by Date</h2>
+    <h2>Step 2) Select Dates to Import</h2>
   </div>
 
   <div class="preview-content">

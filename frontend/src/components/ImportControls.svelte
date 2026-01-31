@@ -45,7 +45,7 @@
 
 <div class="import-controls">
   <div class="controls-header">
-    <h2>Import Options</h2>
+    <h2>Step 3) Pick Your Import Type</h2>
     <span class="import-count">
       {importCount} {importCount === 1 ? 'file' : 'files'} to import
     </span>
