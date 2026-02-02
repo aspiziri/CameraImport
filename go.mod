@@ -3,6 +3,7 @@ module cameraimport
 go 1.22.0
 
 require (
+	github.com/abema/go-mp4 v1.4.1
 	github.com/disintegration/imaging v1.6.2
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 	github.com/wailsapp/wails/v2 v2.11.0

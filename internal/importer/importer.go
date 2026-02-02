@@ -2,7 +2,6 @@ package importer
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -15,6 +14,7 @@ import (
 	"cameraimport/internal/config"
 	"cameraimport/internal/exif"
 	"cameraimport/internal/preview"
+	"github.com/abema/go-mp4"
 )
 
 type FileInfo struct {
@@ -298,6 +298,17 @@ func (s *ImportService) importFile(file FileInfo, destBase string, customFolder 
 		return err
 	}
 
+	// Extract video metadata if this is a video file
+	if file.Type == "video" {
+		videoMeta, err := getVideoMetadata(file.Path)
+		if err != nil {
+			fmt.Printf("Warning: Could not extract video metadata for %s: %v\n", file.Name, err)
+			// Continue without metadata - will use standard filename
+		} else {
+			file.VideoMeta = videoMeta
+		}
+	}
+
 	// Generate destination filename
 	captureDate := exif.GetCaptureDate(file.Path)
 	ext := filepath.Ext(file.Name)
@@ -439,63 +450,103 @@ func filesAreIdentical(path1, path2 string) bool {
 }
 
 func getVideoMetadata(path string) (*VideoMetadata, error) {
-	// Use ffprobe to get video metadata
-	cmd := exec.Command("ffprobe",
-		"-v", "quiet",
-		"-print_format", "json",
-		"-show_format",
-		"-show_streams",
-		path,
-	)
-
-	output, err := cmd.Output()
+	file, err := os.Open(path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open video file: %w", err)
 	}
+	defer file.Close()
 
-	var result struct {
-		Streams []struct {
-			Width       int    `json:"width"`
-			Height      int    `json:"height"`
-			AvgFrameRate string `json:"avg_frame_rate"`
-			Duration    string `json:"duration"`
-		} `json:"streams"`
-		Format struct {
-			Duration string `json:"duration"`
-		} `json:"format"`
-	}
+	meta := &VideoMetadata{}
+	var videoDuration uint64
+	var videoTimeScale uint32
+	var foundVideo bool
 
-	if err := json.Unmarshal(output, &result); err != nil {
-		return nil, err
-	}
+	// Parse MP4/MOV file structure
+	_, err = mp4.ReadBoxStructure(file, func(h *mp4.ReadHandle) (interface{}, error) {
+		boxType := h.BoxInfo.Type.String()
 
-	if len(result.Streams) == 0 {
-		return nil, fmt.Errorf("no video streams found")
-	}
-
-	stream := result.Streams[0]
-	meta := &VideoMetadata{
-		Width:      stream.Width,
-		Height:     stream.Height,
-		Resolution: fmt.Sprintf("%dw", stream.Width),
-	}
-
-	// Parse frame rate
-	if parts := strings.Split(stream.AvgFrameRate, "/"); len(parts) == 2 {
-		var num, denom float64
-		fmt.Sscanf(parts[0], "%f", &num)
-		fmt.Sscanf(parts[1], "%f", &denom)
-		if denom > 0 {
-			fps := num / denom
-			meta.FrameRate = fmt.Sprintf("%.3f", fps)
+		// Expand container boxes to access their children
+		switch boxType {
+		case "moov", "trak", "mdia", "minf", "stbl":
+			_, err := h.Expand()
+			return nil, err
 		}
+
+		switch boxType {
+		case "mvhd": // Movie header - contains duration and timescale
+			box, _, err := h.ReadPayload()
+			if err != nil {
+				return nil, err
+			}
+			mvhd := box.(*mp4.Mvhd)
+			videoDuration = uint64(mvhd.DurationV0)
+			if mvhd.Version == 1 {
+				videoDuration = mvhd.DurationV1
+			}
+			videoTimeScale = mvhd.Timescale
+
+		case "tkhd": // Track header - contains width and height
+			box, _, err := h.ReadPayload()
+			if err != nil {
+				return nil, err
+			}
+			tkhd := box.(*mp4.Tkhd)
+
+			// Width and Height in tkhd are 32-bit fixed-point values (16.16)
+			// Shift right 16 bits to get the integer part
+			width := int(tkhd.Width >> 16)
+			height := int(tkhd.Height >> 16)
+
+			if width > 0 && height > 0 {
+				meta.Width = width
+				meta.Height = height
+				meta.Resolution = fmt.Sprintf("%dw", meta.Width)
+				foundVideo = true
+			}
+
+		case "stts": // Time-to-sample - contains frame timing information
+			if !foundVideo {
+				return nil, nil
+			}
+			box, _, err := h.ReadPayload()
+			if err != nil {
+				return nil, err
+			}
+			stts := box.(*mp4.Stts)
+
+			// Calculate frame rate from sample timing
+			if len(stts.Entries) > 0 && videoTimeScale > 0 {
+				// Use the most common sample delta
+				totalSamples := uint64(0)
+				totalDelta := uint64(0)
+				for _, entry := range stts.Entries {
+					totalSamples += uint64(entry.SampleCount)
+					totalDelta += uint64(entry.SampleCount) * uint64(entry.SampleDelta)
+				}
+
+				if totalSamples > 0 && totalDelta > 0 {
+					avgDelta := float64(totalDelta) / float64(totalSamples)
+					fps := float64(videoTimeScale) / avgDelta
+					meta.FrameRate = fmt.Sprintf("%.3f", fps)
+				}
+			}
+		}
+
+		return nil, nil
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse video metadata: %w", err)
 	}
 
-	// Parse duration
-	if stream.Duration != "" {
-		fmt.Sscanf(stream.Duration, "%f", &meta.Duration)
-	} else if result.Format.Duration != "" {
-		fmt.Sscanf(result.Format.Duration, "%f", &meta.Duration)
+	// Calculate duration in seconds
+	if videoTimeScale > 0 {
+		meta.Duration = float64(videoDuration) / float64(videoTimeScale)
+	}
+
+	// Validate we got the essential data
+	if meta.Width == 0 || meta.Height == 0 {
+		return nil, fmt.Errorf("could not extract video dimensions")
 	}
 
 	return meta, nil
