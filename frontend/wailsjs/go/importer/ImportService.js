@@ -18,6 +18,10 @@ export function GetProgress() {
   return window['go']['importer']['ImportService']['GetProgress']();
 }
 
+export function OpenDestinationFolder(arg1) {
+  return window['go']['importer']['ImportService']['OpenDestinationFolder'](arg1);
+}
+
 export function RunImport(arg1, arg2, arg3, arg4, arg5) {
   return window['go']['importer']['ImportService']['RunImport'](arg1, arg2, arg3, arg4, arg5);
 }

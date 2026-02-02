@@ -104,7 +104,8 @@
             console.log('Import completed!');
             clearInterval(progressInterval);
             progressInterval = null;
-            handleImportComplete();
+            // Keep overlay visible to show completion summary
+            // User will close it manually
           } else if (status === 'error' || status === 'cancelled') {
             console.error('Import stopped:', status);
             clearInterval(progressInterval);
@@ -150,12 +151,11 @@
   }
 
   function handleImportComplete() {
+    // Keep the overlay visible with completion summary
+    // User must click close button to dismiss
     isImporting = false;
-    progress = 100;
-    setTimeout(() => {
-      progress = 0;
-      progressData = null;
-    }, 1000);
+    progress = 0;
+    progressData = null;
   }
 
   function handleProgressUpdate(event) {

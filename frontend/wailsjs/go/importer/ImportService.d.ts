@@ -11,6 +11,8 @@ export function GenerateThumbnailsForFiles(arg1:Array<string>,arg2:number):Promi
 
 export function GetProgress():Promise<importer.ImportProgress>;
 
+export function OpenDestinationFolder(arg1:string):Promise<void>;
+
 export function RunImport(arg1:string,arg2:string,arg3:Array<string>,arg4:string,arg5:boolean):Promise<void>;
 
 export function ScanFiles(arg1:string,arg2:Array<string>):Promise<Array<importer.FileInfo>>;

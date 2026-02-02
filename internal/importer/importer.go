@@ -37,11 +37,14 @@ type VideoMetadata struct {
 }
 
 type ImportProgress struct {
-	Current      int    `json:"current"`
-	Total        int    `json:"total"`
-	Percentage   int    `json:"percentage"`
-	CurrentFile  string `json:"currentFile"`
-	Status       string `json:"status"`
+	Current         int    `json:"current"`
+	Total           int    `json:"total"`
+	Percentage      int    `json:"percentage"`
+	CurrentFile     string `json:"currentFile"`
+	Status          string `json:"status"`
+	SuccessCount    int    `json:"successCount"`
+	FailureCount    int    `json:"failureCount"`
+	DestinationPath string `json:"destinationPath"`
 }
 
 type ImportService struct {
@@ -178,6 +181,9 @@ func (s *ImportService) RunImport(sourcePath, destPath string, dates []string, f
 	s.progress.Total = 0
 	s.progress.Percentage = 0
 	s.progress.CurrentFile = ""
+	s.progress.SuccessCount = 0
+	s.progress.FailureCount = 0
+	s.progress.DestinationPath = destPath
 	s.mu.Unlock()
 
 	fmt.Printf("Starting import: source=%s, dest=%s, dates=%v\n", sourcePath, destPath, dates)
@@ -239,7 +245,13 @@ func (s *ImportService) RunImport(sourcePath, destPath string, dates []string, f
 
 			if err := s.importFile(file, destPath, folderName); err != nil {
 				fmt.Printf("Error importing %s: %v\n", file.Name, err)
-				// Continue with other files
+				s.mu.Lock()
+				s.progress.FailureCount++
+				s.mu.Unlock()
+			} else {
+				s.mu.Lock()
+				s.progress.SuccessCount++
+				s.mu.Unlock()
 			}
 		}
 
@@ -350,6 +362,28 @@ func (s *ImportService) isCancelled() bool {
 	s.cancelMu.RLock()
 	defer s.cancelMu.RUnlock()
 	return s.cancelled
+}
+
+// OpenDestinationFolder opens the destination folder in the native file explorer
+func (s *ImportService) OpenDestinationFolder(path string) error {
+	var cmd *exec.Cmd
+
+	// Determine the OS and use appropriate command
+	switch {
+	case filepath.Separator == '\\': // Windows
+		cmd = exec.Command("explorer", path)
+	case fileExists("/usr/bin/xdg-open"): // Linux
+		cmd = exec.Command("xdg-open", path)
+	default: // macOS
+		cmd = exec.Command("open", path)
+	}
+
+	return cmd.Start()
+}
+
+func fileExists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
 }
 
 // Helper functions

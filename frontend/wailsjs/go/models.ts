@@ -124,6 +124,9 @@ export namespace importer {
 	    percentage: number;
 	    currentFile: string;
 	    status: string;
+	    successCount: number;
+	    failureCount: number;
+	    destinationPath: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new ImportProgress(source);
@@ -136,6 +139,9 @@ export namespace importer {
 	        this.percentage = source["percentage"];
 	        this.currentFile = source["currentFile"];
 	        this.status = source["status"];
+	        this.successCount = source["successCount"];
+	        this.failureCount = source["failureCount"];
+	        this.destinationPath = source["destinationPath"];
 	    }
 	}
 
