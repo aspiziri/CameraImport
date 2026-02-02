@@ -79,7 +79,8 @@
 
 <div class="config-panel">
   <div class="panel-header">
-    <h2>Step 1) Find Your Media</h2>
+    <span class="step-badge">Step 1</span>
+    <h2>Find Your Media</h2>
   </div>
 
   <div class="panel-content">
@@ -119,46 +120,48 @@
 
     <div class="divider"></div>
 
-    <button
-      class="btn-advanced"
-      on:click={() => showAdvanced = !showAdvanced}
-    >
-      {showAdvanced ? '▼' : '▶'} Advanced Settings
-    </button>
+    <div class="advanced-container">
+      <button
+        class="btn-advanced"
+        on:click={() => showAdvanced = !showAdvanced}
+      >
+        {showAdvanced ? '▼' : '▶'} Advanced Settings
+      </button>
 
-    {#if showAdvanced}
-      <div class="advanced-section">
-        <div class="config-section">
-          <label>Image Formats</label>
-          <input
-            type="text"
-            bind:value={config.imgFormats}
-            placeholder="jpg, png, gif"
-            on:change={() => updateConfig('imgFormats', config.imgFormats)}
-          />
-        </div>
+      {#if showAdvanced}
+        <div class="advanced-section">
+          <div class="config-section">
+            <label>Image Formats</label>
+            <input
+              type="text"
+              bind:value={config.imgFormats}
+              placeholder="jpg, png, gif"
+              on:change={() => updateConfig('imgFormats', config.imgFormats)}
+            />
+          </div>
 
-        <div class="config-section">
-          <label>Video Formats</label>
-          <input
-            type="text"
-            bind:value={config.videoFormats}
-            placeholder="mp4, avi, mov"
-            on:change={() => updateConfig('videoFormats', config.videoFormats)}
-          />
-        </div>
+          <div class="config-section">
+            <label>Video Formats</label>
+            <input
+              type="text"
+              bind:value={config.videoFormats}
+              placeholder="mp4, avi, mov"
+              on:change={() => updateConfig('videoFormats', config.videoFormats)}
+            />
+          </div>
 
-        <div class="config-section">
-          <label>RAW Formats</label>
-          <input
-            type="text"
-            bind:value={config.rawFormats}
-            placeholder="arw, cr2, nef"
-            on:change={() => updateConfig('rawFormats', config.rawFormats)}
-          />
+          <div class="config-section">
+            <label>RAW Formats</label>
+            <input
+              type="text"
+              bind:value={config.rawFormats}
+              placeholder="arw, cr2, nef"
+              on:change={() => updateConfig('rawFormats', config.rawFormats)}
+            />
+          </div>
         </div>
-      </div>
-    {/if}
+      {/if}
+    </div>
   </div>
 </div>
 
@@ -176,6 +179,21 @@
     background: rgba(0, 0, 0, 0.2);
     padding: 16px 20px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .step-badge {
+    background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
   }
 
   .panel-header h2 {
@@ -275,17 +293,25 @@
     margin: 8px 0;
   }
 
+  .advanced-container {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
   .btn-advanced {
     background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 6px;
-    padding: 10px 12px;
+    border: none;
+    border-radius: 0;
+    padding: 12px 16px;
     color: #999;
     font-size: 13px;
     cursor: pointer;
     transition: all 0.2s;
     text-align: left;
     width: 100%;
+    display: block;
   }
 
   .btn-advanced:hover {
@@ -297,8 +323,8 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
-    margin-top: 16px;
-    padding-top: 16px;
+    padding: 16px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.1);
   }
 </style>

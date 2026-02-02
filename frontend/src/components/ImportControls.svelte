@@ -45,10 +45,10 @@
 
 <div class="import-controls">
   <div class="controls-header">
-    <h2>Step 3) Pick Your Import Type</h2>
-    <span class="import-count">
-      {importCount} {importCount === 1 ? 'file' : 'files'} to import
-    </span>
+    <div class="header-left">
+      <span class="step-badge">Step 3</span>
+      <h2>Pick Your Import Type</h2>
+    </div>
   </div>
 
   <div class="controls-content">
@@ -116,6 +116,12 @@
       <span>Delete files from source after successful import</span>
     </label>
 
+    <div class="import-summary">
+      <span class="import-count">
+        {importCount} {importCount === 1 ? 'file' : 'files'} ready to import
+      </span>
+    </div>
+
     <button
       class="btn-import"
       on:click={startImport}
@@ -145,6 +151,24 @@
     align-items: center;
   }
 
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .step-badge {
+    background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
   .controls-header h2 {
     margin: 0;
     font-size: 18px;
@@ -152,12 +176,18 @@
     color: #ffffff;
   }
 
+  .import-summary {
+    text-align: center;
+    padding: 12px;
+    background: rgba(79, 70, 229, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(79, 70, 229, 0.3);
+  }
+
   .import-count {
-    font-size: 14px;
-    color: #999;
-    padding: 4px 12px;
-    background: rgba(79, 70, 229, 0.2);
-    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #a5b4fc;
   }
 
   .controls-content {

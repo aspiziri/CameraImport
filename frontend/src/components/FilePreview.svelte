@@ -46,7 +46,8 @@
 
 <div class="file-preview">
   <div class="preview-header">
-    <h2>Step 2) Select Dates to Import</h2>
+    <span class="step-badge">Step 2</span>
+    <h2>Select Dates to Import</h2>
   </div>
 
   <div class="preview-content">
@@ -64,7 +65,7 @@
       </div>
 
       <div class="date-list">
-        {#each Object.keys(groupedByDate).sort().reverse() as date}
+        {#each Object.keys(groupedByDate).sort() as date}
           <div
             class="date-item"
             class:selected={selectedDates.includes(date)}
@@ -99,8 +100,20 @@
     padding: 16px 20px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 12px;
+  }
+
+  .step-badge {
+    background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
   }
 
   .preview-header h2 {
