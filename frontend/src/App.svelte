@@ -25,6 +25,7 @@
   let progress = 0;
   let progressData = null;
   let progressInterval = null;
+  let deleteAfterImport = false;
 
   onMount(async () => {
     console.log('CameraImport UI loaded');
@@ -69,6 +70,7 @@
     isImporting = true;
     importMode = event.detail.mode;
     selectedDates = event.detail.dates || [];
+    deleteAfterImport = event.detail.deleteAfter;
     progress = 0;
     progressData = null;
 
@@ -84,7 +86,7 @@
         config.destination,
         dates,
         folderName,
-        event.detail.deleteAfter
+        deleteAfterImport
       );
 
       // Poll for progress updates
@@ -151,8 +153,14 @@
   }
 
   function handleImportComplete() {
-    // Keep the overlay visible with completion summary
-    // User must click close button to dismiss
+    // Reset file list if delete was used since source files have changed
+    if (deleteAfterImport) {
+      files = [];
+      selectedDates = [];
+      deleteAfterImport = false;
+    }
+
+    // Close the overlay
     isImporting = false;
     progress = 0;
     progressData = null;

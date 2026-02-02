@@ -11,6 +11,7 @@
   let importMode = 'full';
   let customFolderName = '';
   let deleteAfterImport = false;
+  let showDeleteWarning = false;
 
   function startImport() {
     if (selectedDates.length === 0) {
@@ -28,12 +29,28 @@
       return;
     }
 
+    // Show confirmation modal if delete is enabled
+    if (deleteAfterImport) {
+      showDeleteWarning = true;
+      return;
+    }
+
+    // Proceed with import
+    proceedWithImport();
+  }
+
+  function proceedWithImport() {
+    showDeleteWarning = false;
     dispatch('import', {
       mode: importMode,
       dates: selectedDates,
       folderName: importMode === 'selective' ? customFolderName : null,
       deleteAfter: deleteAfterImport
     });
+  }
+
+  function cancelImport() {
+    showDeleteWarning = false;
   }
 
   $: canImport = files.length > 0 && !disabled;
@@ -131,6 +148,45 @@
     </button>
   </div>
 </div>
+
+{#if showDeleteWarning}
+  <div class="warning-overlay">
+    <div class="warning-modal">
+      <div class="warning-header">
+        <div class="warning-icon">⚠️</div>
+        <h3>Delete Files After Import</h3>
+      </div>
+
+      <div class="warning-content">
+        <p class="warning-message">
+          You have chosen to <strong>DELETE</strong> source files after they are imported.
+        </p>
+        <div class="warning-details">
+          <div class="detail-item">
+            <span class="detail-label">Files to be deleted:</span>
+            <span class="detail-value">{importCount} {importCount === 1 ? 'file' : 'files'}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Source location:</span>
+            <span class="detail-value">{config.source}</span>
+          </div>
+        </div>
+        <p class="warning-footer">
+          This action <strong>cannot be undone</strong>. Files will be permanently removed from the source location.
+        </p>
+      </div>
+
+      <div class="warning-actions">
+        <button class="btn-cancel-warning" on:click={cancelImport}>
+          Cancel
+        </button>
+        <button class="btn-confirm-delete" on:click={proceedWithImport}>
+          Yes, Delete After Import
+        </button>
+      </div>
+    </div>
+  </div>
+{/if}
 
 <style>
   .import-controls {
@@ -337,5 +393,171 @@
     .mode-selector {
       grid-template-columns: 1fr;
     }
+  }
+
+  /* Warning Modal Styles */
+  .warning-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .warning-modal {
+    background: linear-gradient(135deg, rgba(30, 30, 30, 0.95) 0%, rgba(20, 20, 20, 0.95) 100%);
+    border: 1px solid rgba(255, 165, 0, 0.3);
+    border-radius: 16px;
+    padding: 32px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  }
+
+  .warning-header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .warning-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 16px;
+    background: rgba(255, 165, 0, 0.15);
+    border: 2px solid rgba(255, 165, 0, 0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+  }
+
+  .warning-header h3 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: #ffa500;
+  }
+
+  .warning-content {
+    margin-bottom: 32px;
+  }
+
+  .warning-message {
+    font-size: 16px;
+    color: #ffffff;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .warning-message strong {
+    color: #ffa500;
+    font-weight: 700;
+  }
+
+  .warning-details {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+
+  .detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .detail-item:last-child {
+    border-bottom: none;
+  }
+
+  .detail-label {
+    font-size: 14px;
+    color: #999;
+  }
+
+  .detail-value {
+    font-size: 14px;
+    color: #ffffff;
+    font-weight: 600;
+    text-align: right;
+    word-break: break-all;
+    max-width: 60%;
+  }
+
+  .warning-footer {
+    font-size: 14px;
+    color: #999;
+    text-align: center;
+    margin: 0;
+    font-weight: 500;
+  }
+
+  .warning-footer strong {
+    color: #ffa500;
+    font-weight: 700;
+  }
+
+  .warning-actions {
+    display: flex;
+    gap: 12px;
+  }
+
+  .btn-cancel-warning {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 14px 20px;
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-cancel-warning:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
+  }
+
+  .btn-confirm-delete {
+    flex: 1;
+    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+    border: none;
+    border-radius: 8px;
+    padding: 14px 20px;
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
+  }
+
+  .btn-confirm-delete:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(234, 88, 12, 0.4);
   }
 </style>
