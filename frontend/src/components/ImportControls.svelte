@@ -133,12 +133,6 @@
       <span>Delete files from source after successful import</span>
     </label>
 
-    <div class="import-summary">
-      <span class="import-count">
-        {importCount} {importCount === 1 ? 'file' : 'files'} ready to import
-      </span>
-    </div>
-
     <button
       class="btn-import"
       on:click={startImport}
@@ -230,20 +224,6 @@
     font-size: 18px;
     font-weight: 600;
     color: #ffffff;
-  }
-
-  .import-summary {
-    text-align: center;
-    padding: 12px;
-    background: rgba(79, 70, 229, 0.1);
-    border-radius: 8px;
-    border: 1px solid rgba(79, 70, 229, 0.3);
-  }
-
-  .import-count {
-    font-size: 15px;
-    font-weight: 600;
-    color: #a5b4fc;
   }
 
   .controls-content {

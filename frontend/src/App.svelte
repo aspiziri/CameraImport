@@ -184,7 +184,6 @@
 
     <FilePreview
       {files}
-      {config}
       bind:selectedDates
     />
 

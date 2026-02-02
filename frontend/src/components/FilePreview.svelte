@@ -2,7 +2,6 @@
   import { createEventDispatcher } from 'svelte';
 
   export let files = [];
-  export let config;
   export let selectedDates = [];
 
   const dispatch = createEventDispatcher();
@@ -144,7 +143,7 @@
     opacity: 0.3;
   }
 
-  .date-actions, .file-actions {
+  .date-actions {
     display: flex;
     gap: 12px;
     margin-bottom: 16px;
