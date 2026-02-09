@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
+	"cameraimport/internal/usbdetector"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -24,18 +26,33 @@ type Config struct {
 
 // App struct
 type App struct {
-	ctx context.Context
+	ctx         context.Context
+	usbDetector usbdetector.Detector
 }
 
 // NewApp creates a new App application struct
 func NewApp() *App {
-	return &App{}
+	return &App{
+		usbDetector: usbdetector.NewDetector(),
+	}
 }
 
 // startup is called when the app starts. The context is saved
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+
+	// Start USB detection
+	err := a.usbDetector.Start(ctx, func(drive usbdetector.DriveInfo) {
+		log.Printf("USB drive detected: %s (%s) at %s", drive.Name, drive.SizeGB, drive.Path)
+
+		// Emit event to frontend
+		runtime.EventsEmit(ctx, "usb-device-connected", drive)
+	})
+
+	if err != nil {
+		log.Printf("Failed to start USB detector: %v", err)
+	}
 }
 
 // Greet returns a greeting for the given name
@@ -123,4 +140,9 @@ func (a *App) getDefaultConfig() *Config {
 		VideoRelativePath: "/Videos/",
 		RawRelativePath:   "/Capture/",
 	}
+}
+
+// GetRemovableDrives returns a list of currently connected removable drives
+func (a *App) GetRemovableDrives() ([]usbdetector.DriveInfo, error) {
+	return a.usbDetector.GetRemovableDrives()
 }

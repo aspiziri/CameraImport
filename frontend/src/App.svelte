@@ -5,6 +5,8 @@
   import FilePreview from './components/FilePreview.svelte';
   import ImportControls from './components/ImportControls.svelte';
   import ProgressBar from './components/ProgressBar.svelte';
+  import USBDetectionModal from './components/USBDetectionModal.svelte';
+  import { EventsOn } from '../wailsjs/runtime/runtime';
 
   let config = {
     source: '',
@@ -27,6 +29,10 @@
   let progressInterval = null;
   let deleteAfterImport = false;
 
+  // USB detection
+  let showUSBModal = false;
+  let detectedDevice = null;
+
   onMount(async () => {
     console.log('CameraImport UI loaded');
 
@@ -40,6 +46,13 @@
     } catch (error) {
       console.error('Error loading config:', error);
     }
+
+    // Listen for USB device connections
+    EventsOn('usb-device-connected', (device) => {
+      console.log('USB device connected:', device);
+      detectedDevice = device;
+      showUSBModal = true;
+    });
   });
 
   async function handleConfigUpdate(event) {
@@ -169,6 +182,29 @@
   function handleProgressUpdate(event) {
     progress = event.detail;
   }
+
+  async function handleUSBAccept(event) {
+    const device = event.detail;
+    console.log('User accepted USB device:', device);
+
+    // Update config with the device path as source
+    config = { ...config, source: device.path };
+
+    // Save config
+    try {
+      await window.go.main.App.SaveConfig(config);
+      console.log('Config updated with USB device as source');
+    } catch (error) {
+      console.error('Error saving config:', error);
+    }
+
+    showUSBModal = false;
+  }
+
+  function handleUSBDecline() {
+    console.log('User declined USB device');
+    showUSBModal = false;
+  }
 </script>
 
 <div class="app">
@@ -205,6 +241,13 @@
       on:cancel={handleCancel}
     />
   {/if}
+
+  <USBDetectionModal
+    bind:show={showUSBModal}
+    device={detectedDevice}
+    on:accept={handleUSBAccept}
+    on:decline={handleUSBDecline}
+  />
 </div>
 
 <style>
