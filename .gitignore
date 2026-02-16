@@ -42,3 +42,8 @@ Thumbs.db
 
 # Config backups
 config.ini.bak
+
+# Claude Code - user-specific files
+.claude/settings.local.json
+.claude/preferences.md
+.claude/memory/
