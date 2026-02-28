@@ -459,15 +459,22 @@ func getVideoMetadata(path string) (*VideoMetadata, error) {
 	meta := &VideoMetadata{}
 	var videoDuration uint64
 	var videoTimeScale uint32
-	var foundVideo bool
+	var currentTrackIsVideo bool
+	var currentMediaTimeScale uint32
 
 	// Parse MP4/MOV file structure
 	_, err = mp4.ReadBoxStructure(file, func(h *mp4.ReadHandle) (interface{}, error) {
 		boxType := h.BoxInfo.Type.String()
 
-		// Expand container boxes to access their children
+		// Expand container boxes to access their children.
+		// trak is handled separately to reset per-track state before expanding.
 		switch boxType {
-		case "moov", "trak", "mdia", "minf", "stbl":
+		case "moov", "mdia", "minf", "stbl":
+			_, err := h.Expand()
+			return nil, err
+		case "trak":
+			currentTrackIsVideo = false
+			currentMediaTimeScale = 0
 			_, err := h.Expand()
 			return nil, err
 		}
@@ -498,14 +505,24 @@ func getVideoMetadata(path string) (*VideoMetadata, error) {
 			height := int(tkhd.Height >> 16)
 
 			if width > 0 && height > 0 {
-				meta.Width = width
-				meta.Height = height
-				meta.Resolution = fmt.Sprintf("%dw", meta.Width)
-				foundVideo = true
+				currentTrackIsVideo = true
+				if meta.Width == 0 {
+					meta.Width = width
+					meta.Height = height
+					meta.Resolution = fmt.Sprintf("%dw", meta.Width)
+				}
 			}
 
+		case "mdhd": // Media header - contains the track's media timescale
+			box, _, err := h.ReadPayload()
+			if err != nil {
+				return nil, err
+			}
+			mdhd := box.(*mp4.Mdhd)
+			currentMediaTimeScale = mdhd.Timescale
+
 		case "stts": // Time-to-sample - contains frame timing information
-			if !foundVideo {
+			if !currentTrackIsVideo || meta.FrameRate != "" {
 				return nil, nil
 			}
 			box, _, err := h.ReadPayload()
@@ -514,9 +531,8 @@ func getVideoMetadata(path string) (*VideoMetadata, error) {
 			}
 			stts := box.(*mp4.Stts)
 
-			// Calculate frame rate from sample timing
-			if len(stts.Entries) > 0 && videoTimeScale > 0 {
-				// Use the most common sample delta
+			// Calculate frame rate from sample timing using the track's media timescale
+			if len(stts.Entries) > 0 && currentMediaTimeScale > 0 {
 				totalSamples := uint64(0)
 				totalDelta := uint64(0)
 				for _, entry := range stts.Entries {
@@ -526,7 +542,7 @@ func getVideoMetadata(path string) (*VideoMetadata, error) {
 
 				if totalSamples > 0 && totalDelta > 0 {
 					avgDelta := float64(totalDelta) / float64(totalSamples)
-					fps := float64(videoTimeScale) / avgDelta
+					fps := float64(currentMediaTimeScale) / avgDelta
 					meta.FrameRate = fmt.Sprintf("%.3f", fps)
 				}
 			}
