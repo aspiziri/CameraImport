@@ -109,9 +109,10 @@
 
   <div class="panel-content">
     <div class="config-section">
-      <label>Source Folder</label>
+      <label for="source-folder">Source Folder</label>
       <div class="folder-input">
         <input
+          id="source-folder"
           type="text"
           bind:value={config.source}
           placeholder="E:\ or /media/sdcard"
@@ -131,9 +132,10 @@
     </div>
 
     <div class="config-section">
-      <label>Destination Folder</label>
+      <label for="dest-folder">Destination Folder</label>
       <div class="folder-input">
         <input
+          id="dest-folder"
           type="text"
           bind:value={config.destination}
           placeholder="D:\Media\Camera Import"
@@ -164,8 +166,9 @@
       {#if showAdvanced}
         <div class="advanced-section">
           <div class="config-section">
-            <label>Image Formats</label>
+            <label for="img-formats">Image Formats</label>
             <input
+              id="img-formats"
               type="text"
               bind:value={config.imgFormats}
               placeholder="jpg, png, gif"
@@ -174,8 +177,9 @@
           </div>
 
           <div class="config-section">
-            <label>Video Formats</label>
+            <label for="video-formats">Video Formats</label>
             <input
+              id="video-formats"
               type="text"
               bind:value={config.videoFormats}
               placeholder="mp4, avi, mov"
@@ -184,8 +188,9 @@
           </div>
 
           <div class="config-section">
-            <label>RAW Formats</label>
+            <label for="raw-formats">RAW Formats</label>
             <input
+              id="raw-formats"
               type="text"
               bind:value={config.rawFormats}
               placeholder="arw, cr2, nef"

@@ -22,10 +22,20 @@
 </script>
 
 {#if show}
-  <div class="modal-overlay" on:click={handleClose}>
-    <div class="modal" on:click|stopPropagation>
+  <div
+    class="modal-overlay"
+    role="presentation"
+    on:click={(e) => e.target === e.currentTarget && handleClose()}
+    on:keydown={(e) => e.key === 'Escape' && handleClose()}
+  >
+    <div
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="usb-modal-title"
+    >
       <div class="modal-header">
-        <h2>Select Source Device</h2>
+        <h2 id="usb-modal-title">Select Source Device</h2>
         <button class="close-btn" on:click={handleClose}>&times;</button>
       </div>
 

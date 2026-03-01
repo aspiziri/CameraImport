@@ -68,10 +68,14 @@
           <div
             class="date-item"
             class:selected={selectedDates.includes(date)}
+            role="checkbox"
+            aria-checked={selectedDates.includes(date)}
+            tabindex="0"
             on:click={() => toggleDate(date)}
+            on:keydown={(e) => (e.key === ' ' || e.key === 'Enter') && toggleDate(date)}
           >
             <div class="date-checkbox">
-              <input type="checkbox" checked={selectedDates.includes(date)} />
+              <input type="checkbox" checked={selectedDates.includes(date)} aria-hidden="true" tabindex="-1" />
             </div>
             <div class="date-label">{date}</div>
             <div class="date-stats">
