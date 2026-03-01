@@ -5,6 +5,7 @@ package usbdetector
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"syscall"
 	"time"
 	"unsafe"
@@ -115,9 +116,9 @@ func (d *WindowsDetector) GetRemovableDrives() ([]DriveInfo, error) {
 	service := serviceRaw.ToIDispatch()
 	defer service.Release()
 
-	// Query for logical disks
+	// Query for logical disks with media present (Size IS NOT NULL excludes empty card reader slots)
 	resultRaw, err := oleutil.CallMethod(service, "ExecQuery",
-		"SELECT * FROM Win32_LogicalDisk WHERE DriveType = 2")
+		"SELECT * FROM Win32_LogicalDisk WHERE DriveType = 2 AND Size IS NOT NULL")
 	if err != nil {
 		return drives, err
 	}
@@ -150,10 +151,13 @@ func (d *WindowsDetector) GetRemovableDrives() ([]DriveInfo, error) {
 			IsRemovable: true,
 		}
 
-		// Parse size
-		if size.Val != 0 {
-			driveInfo.Size = uint64(size.Val)
-			driveInfo.SizeGB = FormatSize(driveInfo.Size)
+		// WMI returns uint64 Size as a BSTR string, not a numeric VARIANT —
+		// size.Val would be the string pointer address, not the byte count.
+		if sizeStr := size.ToString(); sizeStr != "" {
+			if sizeBytes, err := strconv.ParseUint(sizeStr, 10, 64); err == nil {
+				driveInfo.Size = sizeBytes
+				driveInfo.SizeGB = FormatSize(sizeBytes)
+			}
 		}
 
 		if driveInfo.Name == "" {

@@ -5,8 +5,6 @@
   import FilePreview from './components/FilePreview.svelte';
   import ImportControls from './components/ImportControls.svelte';
   import ProgressBar from './components/ProgressBar.svelte';
-  import USBDetectionModal from './components/USBDetectionModal.svelte';
-  import { EventsOn } from '../wailsjs/runtime/runtime';
 
   let config = {
     source: '',
@@ -29,10 +27,6 @@
   let progressInterval = null;
   let deleteAfterImport = false;
 
-  // USB detection
-  let showUSBModal = false;
-  let detectedDevice = null;
-
   onMount(async () => {
     console.log('CameraImport UI loaded');
 
@@ -46,13 +40,6 @@
     } catch (error) {
       console.error('Error loading config:', error);
     }
-
-    // Listen for USB device connections
-    EventsOn('usb-device-connected', (device) => {
-      console.log('USB device connected:', device);
-      detectedDevice = device;
-      showUSBModal = true;
-    });
   });
 
   async function handleConfigUpdate(event) {
@@ -88,7 +75,6 @@
     progressData = null;
 
     try {
-      // Start the import process
       const dates = event.detail.dates || [];
       const folderName = event.detail.folderName || '';
 
@@ -109,7 +95,6 @@
           progressData = data;
           console.log('Progress data:', data);
 
-          // Handle both capital and lowercase field names
           const percentage = data.Percentage || data.percentage || 0;
           const status = data.Status || data.status || 'unknown';
 
@@ -119,8 +104,6 @@
             console.log('Import completed!');
             clearInterval(progressInterval);
             progressInterval = null;
-            // Keep overlay visible to show completion summary
-            // User will close it manually
           } else if (status === 'error' || status === 'cancelled') {
             console.error('Import stopped:', status);
             clearInterval(progressInterval);
@@ -166,14 +149,12 @@
   }
 
   function handleImportComplete() {
-    // Reset file list if delete was used since source files have changed
     if (deleteAfterImport) {
       files = [];
       selectedDates = [];
       deleteAfterImport = false;
     }
 
-    // Close the overlay
     isImporting = false;
     progress = 0;
     progressData = null;
@@ -181,29 +162,6 @@
 
   function handleProgressUpdate(event) {
     progress = event.detail;
-  }
-
-  async function handleUSBAccept(event) {
-    const device = event.detail;
-    console.log('User accepted USB device:', device);
-
-    // Update config with the device path as source
-    config = { ...config, source: device.path };
-
-    // Save config
-    try {
-      await window.go.main.App.SaveConfig(config);
-      console.log('Config updated with USB device as source');
-    } catch (error) {
-      console.error('Error saving config:', error);
-    }
-
-    showUSBModal = false;
-  }
-
-  function handleUSBDecline() {
-    console.log('User declined USB device');
-    showUSBModal = false;
   }
 </script>
 
@@ -241,13 +199,6 @@
       on:cancel={handleCancel}
     />
   {/if}
-
-  <USBDetectionModal
-    bind:show={showUSBModal}
-    device={detectedDevice}
-    on:accept={handleUSBAccept}
-    on:decline={handleUSBDecline}
-  />
 </div>
 
 <style>

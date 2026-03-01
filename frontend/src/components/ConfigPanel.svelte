@@ -1,15 +1,18 @@
 <script>
   import { createEventDispatcher } from 'svelte';
+  import USBDetectionModal from './USBDetectionModal.svelte';
 
   export let config;
 
   const dispatch = createEventDispatcher();
   let scanning = false;
   let showAdvanced = false;
+  let showDrivePicker = false;
+  let availableDrives = [];
+  let loadingDrives = false;
 
   async function selectFolder(type) {
     try {
-      // Check if window.go is available
       if (!window.go) {
         throw new Error('Wails runtime not available');
       }
@@ -18,7 +21,6 @@
         ? 'Select Source Folder (SD Card)'
         : 'Select Destination Folder';
 
-      // Call the Go backend method for folder selection
       const selected = await window.go.main.App.SelectFolder(title);
 
       if (selected) {
@@ -36,6 +38,29 @@
     }
   }
 
+  async function openDrivePicker() {
+    showDrivePicker = true;
+    await refreshDrives();
+  }
+
+  async function refreshDrives() {
+    loadingDrives = true;
+    try {
+      availableDrives = await window.go.main.App.GetRemovableDrives() || [];
+    } catch (error) {
+      console.error('Error getting drives:', error);
+      availableDrives = [];
+    } finally {
+      loadingDrives = false;
+    }
+  }
+
+  function handleDriveSelect(event) {
+    const drive = event.detail;
+    config.source = drive.path;
+    updateConfig('source', drive.path);
+  }
+
   async function scanSource() {
     if (!config.source) {
       alert('Please select a source folder first');
@@ -47,7 +72,6 @@
     console.log('Starting scan of:', config.source);
 
     try {
-      // Check if window.go is available (will be injected by Wails)
       if (!window.go) {
         throw new Error('Wails runtime not available');
       }
@@ -93,7 +117,16 @@
           placeholder="E:\ or /media/sdcard"
           on:change={() => updateConfig('source', config.source)}
         />
-        <button on:click={() => selectFolder('source')} class="btn-icon">📁</button>
+        <button on:click={() => selectFolder('source')} class="btn-icon" title="Browse folders">📁</button>
+        <button on:click={openDrivePicker} class="btn-icon" title="Select connected device">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="4" y="2" width="16" height="20" rx="2"/>
+            <rect x="8" y="6" width="4" height="6" rx="1"/>
+            <line x1="8" y1="16" x2="8.01" y2="16"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+            <line x1="16" y1="16" x2="16.01" y2="16"/>
+          </svg>
+        </button>
       </div>
     </div>
 
@@ -164,6 +197,14 @@
     </div>
   </div>
 </div>
+
+<USBDetectionModal
+  bind:show={showDrivePicker}
+  drives={availableDrives}
+  loading={loadingDrives}
+  on:select={handleDriveSelect}
+  on:refresh={refreshDrives}
+/>
 
 <style>
   .config-panel {
@@ -258,10 +299,21 @@
     cursor: pointer;
     transition: all 0.2s;
     font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ccc;
+    flex-shrink: 0;
+  }
+
+  .btn-icon svg {
+    width: 16px;
+    height: 16px;
   }
 
   .btn-icon:hover {
     background: rgba(255, 255, 255, 0.1);
+    color: #fff;
   }
 
   .btn-primary {
