@@ -328,6 +328,10 @@ func (s *ImportService) importFile(file FileInfo, destBase string, customFolder 
 		destFileName = captureDate.Format("2006-01-02 15.04.05") + ext
 	}
 
+	s.mu.Lock()
+	s.progress.CurrentFile = destFileName
+	s.mu.Unlock()
+
 	destPath := filepath.Join(fullDestDir, destFileName)
 
 	// Check if file already exists

@@ -100,7 +100,7 @@
 
           progress = percentage;
 
-          if (status === 'completed' || percentage >= 100) {
+          if (status === 'completed') {
             console.log('Import completed!');
             clearInterval(progressInterval);
             progressInterval = null;
