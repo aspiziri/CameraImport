@@ -17,8 +17,8 @@ var assets embed.FS
 
 func main() {
 	// Create application instance
-	app := NewApp()
 	importService := importer.NewImportService()
+	app := NewApp(importService)
 
 	// Create application with options
 	err := wails.Run(&options.App{
