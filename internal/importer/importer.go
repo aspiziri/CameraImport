@@ -1,7 +1,9 @@
 package importer
 
 import (
+	"bytes"
 	"context"
+	"crypto/sha256"
 	"fmt"
 	"io"
 	"os"
@@ -73,15 +75,35 @@ func (s *ImportService) Startup(ctx context.Context) {
 	s.ctx = ctx
 }
 
+// SetConfig applies the user's saved configuration to the import service
+func (s *ImportService) SetConfig(cfg *config.Config) {
+	if cfg == nil {
+		return
+	}
+	s.mu.Lock()
+	s.config = cfg
+	s.mu.Unlock()
+}
+
+func (s *ImportService) getConfig() *config.Config {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.config
+}
+
 // ScanFiles scans the source directory for media files
 // Fast scan - only gets basic file info, no thumbnails or EXIF during scan
 func (s *ImportService) ScanFiles(sourcePath string, formats []string) ([]FileInfo, error) {
 	var files []FileInfo
+	cfg := s.getConfig()
 
 	fmt.Printf("Starting scan of: %s\n", sourcePath)
 
 	err := filepath.Walk(sourcePath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
+			if path == sourcePath {
+				return err // source root is unreadable - fail the scan
+			}
 			fmt.Printf("Error accessing path %s: %v\n", path, err)
 			return nil // Skip files with errors
 		}
@@ -91,7 +113,7 @@ func (s *ImportService) ScanFiles(sourcePath string, formats []string) ([]FileIn
 		}
 
 		ext := strings.TrimPrefix(filepath.Ext(path), ".")
-		if !s.config.IsMediaFormat(ext) {
+		if !isWantedFormat(ext, formats, cfg) {
 			return nil
 		}
 
@@ -106,11 +128,11 @@ func (s *ImportService) ScanFiles(sourcePath string, formats []string) ([]FileIn
 		}
 
 		// Determine file type (just by extension for speed)
-		if s.config.IsImageFormat(ext) {
+		if cfg.IsImageFormat(ext) {
 			fileInfo.Type = "image"
-		} else if s.config.IsVideoFormat(ext) {
+		} else if cfg.IsVideoFormat(ext) {
 			fileInfo.Type = "video"
-		} else if s.config.IsRawFormat(ext) {
+		} else if cfg.IsRawFormat(ext) {
 			fileInfo.Type = "raw"
 		}
 
@@ -126,6 +148,20 @@ func (s *ImportService) ScanFiles(sourcePath string, formats []string) ([]FileIn
 
 	fmt.Printf("Scan complete. Found %d files\n", len(files))
 	return files, err
+}
+
+// isWantedFormat checks the extension against the caller-supplied format list,
+// falling back to the configured media formats when no list is given.
+func isWantedFormat(ext string, formats []string, cfg *config.Config) bool {
+	if len(formats) == 0 {
+		return cfg.IsMediaFormat(ext)
+	}
+	for _, f := range formats {
+		if strings.EqualFold(ext, strings.TrimPrefix(f, ".")) {
+			return true
+		}
+	}
+	return false
 }
 
 // GenerateThumbnail generates a thumbnail for a specific file path
@@ -149,7 +185,7 @@ func (s *ImportService) GenerateThumbnailsForFiles(filePaths []string, maxCount 
 
 		// Check if it's an image file
 		ext := strings.TrimPrefix(filepath.Ext(path), ".")
-		if !s.config.IsImageFormat(ext) {
+		if !s.getConfig().IsImageFormat(ext) {
 			continue
 		}
 
@@ -169,13 +205,12 @@ func (s *ImportService) GenerateThumbnailsForFiles(filePaths []string, maxCount 
 
 // RunImport performs the actual import operation asynchronously
 func (s *ImportService) RunImport(sourcePath, destPath string, dates []string, folderName string, deleteAfter bool) error {
-	// Reset cancelled flag
-	s.cancelMu.Lock()
-	s.cancelled = false
-	s.cancelMu.Unlock()
-
-	// Reset progress with mutex
+	// Refuse to start while another import is running, and reset progress
 	s.mu.Lock()
+	if s.progress.Status == "starting" || s.progress.Status == "running" {
+		s.mu.Unlock()
+		return fmt.Errorf("an import is already in progress")
+	}
 	s.progress.Status = "starting"
 	s.progress.Current = 0
 	s.progress.Total = 0
@@ -185,6 +220,11 @@ func (s *ImportService) RunImport(sourcePath, destPath string, dates []string, f
 	s.progress.FailureCount = 0
 	s.progress.DestinationPath = destPath
 	s.mu.Unlock()
+
+	// Reset cancelled flag
+	s.cancelMu.Lock()
+	s.cancelled = false
+	s.cancelMu.Unlock()
 
 	fmt.Printf("Starting import: source=%s, dest=%s, dates=%v\n", sourcePath, destPath, dates)
 
@@ -223,6 +263,11 @@ func (s *ImportService) RunImport(sourcePath, destPath string, dates []string, f
 		s.progress.Status = "running"
 		s.mu.Unlock()
 
+		// Track which source files were actually copied (or verified to
+		// already exist at the destination) so delete-after-import never
+		// removes a file that failed to import.
+		var imported []string
+
 		for i, file := range filesToImport {
 			// Check for cancellation
 			if s.isCancelled() {
@@ -252,13 +297,16 @@ func (s *ImportService) RunImport(sourcePath, destPath string, dates []string, f
 				s.mu.Lock()
 				s.progress.SuccessCount++
 				s.mu.Unlock()
+				imported = append(imported, file.Path)
 			}
 		}
 
 		if deleteAfter {
 			fmt.Println("Deleting source files...")
-			for _, file := range filesToImport {
-				os.Remove(file.Path)
+			for _, path := range imported {
+				if err := os.Remove(path); err != nil {
+					fmt.Printf("Warning: failed to delete %s: %v\n", path, err)
+				}
 			}
 		}
 
@@ -283,14 +331,15 @@ func (s *ImportService) importFile(file FileInfo, destBase string, customFolder 
 	}
 
 	// Determine subdirectory based on file type
+	cfg := s.getConfig()
 	var subDir string
 	switch file.Type {
 	case "image":
-		subDir = strings.TrimPrefix(s.config.ImgRelativePath, "/")
+		subDir = strings.TrimPrefix(cfg.ImgRelativePath, "/")
 	case "video":
-		subDir = strings.TrimPrefix(s.config.VideoRelativePath, "/")
+		subDir = strings.TrimPrefix(cfg.VideoRelativePath, "/")
 	case "raw":
-		subDir = strings.TrimPrefix(s.config.RawRelativePath, "/")
+		subDir = strings.TrimPrefix(cfg.RawRelativePath, "/")
 	}
 
 	fullDestDir := filepath.Join(destDir, subDir)
@@ -328,22 +377,31 @@ func (s *ImportService) importFile(file FileInfo, destBase string, customFolder 
 		destFileName = captureDate.Format("2006-01-02 15.04.05") + ext
 	}
 
+	destPath := filepath.Join(fullDestDir, destFileName)
+	baseName := strings.TrimSuffix(destFileName, ext)
+
+	// EXIF timestamps have one-second resolution, so burst shots collide on
+	// the same name. Skip true duplicates, otherwise append a counter until
+	// a free name is found.
+	for n := 1; ; n++ {
+		_, err := os.Stat(destPath)
+		if os.IsNotExist(err) {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		identical, err := filesAreIdentical(file.Path, destPath)
+		if err == nil && identical {
+			return nil // Skip identical file, already imported
+		}
+		destFileName = fmt.Sprintf("%s-%d%s", baseName, n, ext)
+		destPath = filepath.Join(fullDestDir, destFileName)
+	}
+
 	s.mu.Lock()
 	s.progress.CurrentFile = destFileName
 	s.mu.Unlock()
-
-	destPath := filepath.Join(fullDestDir, destFileName)
-
-	// Check if file already exists
-	if _, err := os.Stat(destPath); err == nil {
-		// File exists, check if it's the same
-		if filesAreIdentical(file.Path, destPath) {
-			return nil // Skip identical file
-		}
-		// Add microseconds to make filename unique
-		destFileName = captureDate.Format("2006-01-02 15.04.05.000000") + ext
-		destPath = filepath.Join(fullDestDir, destFileName)
-	}
 
 	// Copy the file
 	return copyFile(file.Path, destPath)
@@ -410,13 +468,27 @@ func copyFile(src, dst string) error {
 	}
 	defer sourceFile.Close()
 
-	destFile, err := os.Create(dst)
+	// O_EXCL guarantees an existing file is never overwritten
+	destFile, err := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0644)
 	if err != nil {
 		return err
 	}
-	defer destFile.Close()
 
 	if _, err := io.Copy(destFile, sourceFile); err != nil {
+		destFile.Close()
+		os.Remove(dst)
+		return err
+	}
+
+	// Flush to disk and surface write errors before the copy is counted as
+	// a success (the source may be deleted afterwards)
+	if err := destFile.Sync(); err != nil {
+		destFile.Close()
+		os.Remove(dst)
+		return err
+	}
+	if err := destFile.Close(); err != nil {
+		os.Remove(dst)
 		return err
 	}
 
@@ -428,29 +500,44 @@ func copyFile(src, dst string) error {
 	return nil
 }
 
-func filesAreIdentical(path1, path2 string) bool {
-	file1, err := os.Open(path1)
+// filesAreIdentical reports whether two files have the same content
+func filesAreIdentical(path1, path2 string) (bool, error) {
+	info1, err := os.Stat(path1)
 	if err != nil {
-		return false
+		return false, err
 	}
-	defer file1.Close()
-
-	file2, err := os.Open(path2)
+	info2, err := os.Stat(path2)
 	if err != nil {
-		return false
+		return false, err
 	}
-	defer file2.Close()
-
-	info1, _ := file1.Stat()
-	info2, _ := file2.Stat()
-
 	if info1.Size() != info2.Size() {
-		return false
+		return false, nil
 	}
 
-	// For performance, only compare file sizes
-	// Could add hash comparison for more accuracy
-	return true
+	hash1, err := fileHash(path1)
+	if err != nil {
+		return false, err
+	}
+	hash2, err := fileHash(path2)
+	if err != nil {
+		return false, err
+	}
+
+	return bytes.Equal(hash1, hash2), nil
+}
+
+func fileHash(path string) ([]byte, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	h := sha256.New()
+	if _, err := io.Copy(h, file); err != nil {
+		return nil, err
+	}
+	return h.Sum(nil), nil
 }
 
 func getVideoMetadata(path string) (*VideoMetadata, error) {
