@@ -150,6 +150,21 @@ func (s *ImportService) ScanFiles(sourcePath string, formats []string) ([]FileIn
 	return files, err
 }
 
+// canCarryExif reports whether the file format can hold EXIF metadata.
+// For formats that can't (video containers, png, gif), goexif scans the
+// entire file before failing, so callers should go straight to the
+// mod-time fallback instead.
+func canCarryExif(file FileInfo) bool {
+	if file.Type == "video" {
+		return false
+	}
+	switch strings.ToLower(strings.TrimPrefix(filepath.Ext(file.Name), ".")) {
+	case "png", "gif":
+		return false
+	}
+	return true
+}
+
 // isWantedFormat checks the extension against the caller-supplied format list,
 // falling back to the configured media formats when no list is given.
 func isWantedFormat(ext string, formats []string, cfg *config.Config) bool {
@@ -322,12 +337,20 @@ func (s *ImportService) RunImport(sourcePath, destPath string, dates []string, f
 }
 
 func (s *ImportService) importFile(file FileInfo, destBase string, customFolder string) error {
-	var destDir string
+	// Resolve the capture date once; it drives both the destination folder
+	// and the filename so the two always agree
+	var captureDate time.Time
+	if canCarryExif(file) {
+		captureDate = exif.GetCaptureDate(file.Path)
+	} else {
+		captureDate = exif.FileModDate(file.Path)
+	}
 
+	var destDir string
 	if customFolder != "" {
 		destDir = filepath.Join(destBase, customFolder)
 	} else {
-		destDir = filepath.Join(destBase, file.Date)
+		destDir = filepath.Join(destBase, captureDate.Format("2006-01-02"))
 	}
 
 	// Determine subdirectory based on file type
@@ -359,7 +382,6 @@ func (s *ImportService) importFile(file FileInfo, destBase string, customFolder 
 	}
 
 	// Generate destination filename
-	captureDate := exif.GetCaptureDate(file.Path)
 	ext := filepath.Ext(file.Name)
 
 	var destFileName string

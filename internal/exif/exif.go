@@ -120,7 +120,12 @@ func GetCaptureDate(filePath string) time.Time {
 		return exifData.DateTime
 	}
 
-	// Fallback to file modification time
+	return FileModDate(filePath)
+}
+
+// FileModDate returns the file's modification time, or the current time if
+// the file cannot be read
+func FileModDate(filePath string) time.Time {
 	if info, err := os.Stat(filePath); err == nil {
 		return info.ModTime()
 	}

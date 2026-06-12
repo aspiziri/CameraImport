@@ -120,6 +120,38 @@ func TestFilesAreIdenticalComparesContent(t *testing.T) {
 	}
 }
 
+// Without a custom folder, the destination folder must come from the same
+// capture date used for the filename, so the two always agree.
+func TestImportFileFolderMatchesCaptureDate(t *testing.T) {
+	s := NewImportService()
+	src := t.TempDir()
+	dest := t.TempDir()
+
+	path := writeSourceFile(t, src, "a.jpg", "content")
+	info, err := os.Stat(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Scan-time date string deliberately disagrees with the file's mtime
+	file := FileInfo{
+		Name: "a.jpg",
+		Path: path,
+		Size: info.Size(),
+		Date: "1999-12-31",
+		Type: "image",
+	}
+	if err := s.importFile(file, dest, ""); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := os.Stat(filepath.Join(dest, "2026-01-02")); err != nil {
+		t.Errorf("expected folder named after the capture date, got: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(dest, "1999-12-31")); err == nil {
+		t.Error("folder was named after the scan-time date instead of the capture date")
+	}
+}
+
 func TestCopyFileRefusesToOverwrite(t *testing.T) {
 	dir := t.TempDir()
 	src := writeSourceFile(t, dir, "src.jpg", "new content")
