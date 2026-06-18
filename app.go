@@ -2,41 +2,34 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 
+	"cameraimport/internal/config"
+	"cameraimport/internal/importer"
 	"cameraimport/internal/usbdetector"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-// Config represents the application configuration
-type Config struct {
-	Source            string   `json:"source"`
-	Destination       string   `json:"destination"`
-	ImgFormats        []string `json:"imgFormats"`
-	VideoFormats      []string `json:"videoFormats"`
-	RawFormats        []string `json:"rawFormats"`
-	ImgRelativePath   string   `json:"imgRelativePath"`
-	VideoRelativePath string   `json:"videoRelativePath"`
-	RawRelativePath   string   `json:"rawRelativePath"`
-}
-
 // App struct
 type App struct {
-	ctx context.Context
+	ctx           context.Context
+	importService *importer.ImportService
 }
 
 // NewApp creates a new App application struct
-func NewApp() *App {
-	return &App{}
+func NewApp(importService *importer.ImportService) *App {
+	return &App{importService: importService}
 }
 
 // startup is called when the app starts. The context is saved
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+
+	// Apply the persisted configuration to the import service
+	a.LoadConfig()
 }
 
 // Greet returns a greeting for the given name
@@ -73,57 +66,41 @@ func (a *App) getConfigPath() (string, error) {
 	return filepath.Join(configDir, "config.json"), nil
 }
 
-// LoadConfig loads the saved configuration
-func (a *App) LoadConfig() (*Config, error) {
-	configPath, err := a.getConfigPath()
-	if err != nil {
-		return a.getDefaultConfig(), nil
-	}
-
-	data, err := os.ReadFile(configPath)
-	if err != nil {
-		// If file doesn't exist, return default config
-		if os.IsNotExist(err) {
-			return a.getDefaultConfig(), nil
-		}
-		return nil, err
-	}
-
-	var config Config
-	if err := json.Unmarshal(data, &config); err != nil {
-		return a.getDefaultConfig(), nil
-	}
-
-	return &config, nil
+// LoadConfig loads the saved configuration and applies it to the import service
+func (a *App) LoadConfig() (*config.Config, error) {
+	cfg := a.loadConfigOrDefault()
+	a.importService.SetConfig(cfg)
+	return cfg, nil
 }
 
-// SaveConfig saves the configuration to disk
-func (a *App) SaveConfig(config Config) error {
+func (a *App) loadConfigOrDefault() *config.Config {
+	configPath, err := a.getConfigPath()
+	if err != nil {
+		return config.NewConfig()
+	}
+
+	cfg, err := config.LoadConfig(configPath)
+	if err != nil {
+		// Missing or unreadable config falls back to defaults
+		return config.NewConfig()
+	}
+
+	return cfg
+}
+
+// SaveConfig saves the configuration to disk and applies it to the import service
+func (a *App) SaveConfig(cfg config.Config) error {
 	configPath, err := a.getConfigPath()
 	if err != nil {
 		return err
 	}
 
-	data, err := json.MarshalIndent(config, "", "  ")
-	if err != nil {
+	if err := cfg.SaveConfig(configPath); err != nil {
 		return err
 	}
 
-	return os.WriteFile(configPath, data, 0644)
-}
-
-// getDefaultConfig returns the default configuration
-func (a *App) getDefaultConfig() *Config {
-	return &Config{
-		Source:            "",
-		Destination:       "",
-		ImgFormats:        []string{"jpg", "JPG", "png", "PNG", "gif", "GIF", "tif", "TIF", "jpeg", "JPEG"},
-		VideoFormats:      []string{"mp4", "MP4", "avi", "AVI", "mov", "MOV"},
-		RawFormats:        []string{"arw", "ARW", "cr2", "CR2", "nef", "NEF", "dng", "DNG"},
-		ImgRelativePath:   "/",
-		VideoRelativePath: "/Videos/",
-		RawRelativePath:   "/Capture/",
-	}
+	a.importService.SetConfig(&cfg)
+	return nil
 }
 
 // GetRemovableDrives returns a list of currently connected removable drives

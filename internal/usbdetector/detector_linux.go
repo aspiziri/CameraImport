@@ -195,15 +195,16 @@ func (d *LinuxDetector) isRemovable(mountPath string) bool {
 		return false
 	}
 
-	// Extract device name (e.g., /dev/sdb1 -> sdb)
 	deviceName = filepath.Base(deviceName)
-	// Remove partition number
-	for len(deviceName) > 0 && deviceName[len(deviceName)-1] >= '0' && deviceName[len(deviceName)-1] <= '9' {
-		deviceName = deviceName[:len(deviceName)-1]
-	}
 
-	if deviceName == "" {
-		return false
+	// Resolve the parent disk via sysfs: /sys/class/block/<partition> points
+	// into the disk's directory (e.g. .../block/mmcblk0/mmcblk0p1), while a
+	// whole disk resolves to a path whose parent is "block". Stripping
+	// trailing digits would mangle names like mmcblk0p1 or nvme0n1p1.
+	if resolved, err := filepath.EvalSymlinks(filepath.Join("/sys/class/block", deviceName)); err == nil {
+		if parent := filepath.Base(filepath.Dir(resolved)); parent != "block" {
+			deviceName = parent
+		}
 	}
 
 	// Check /sys/block/<device>/removable

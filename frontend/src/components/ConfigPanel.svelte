@@ -99,6 +99,16 @@
   function updateConfig(field, value) {
     dispatch('update', { [field]: value });
   }
+
+  // Format fields are arrays in the config but edited as comma-separated text
+  function updateFormats(field, value) {
+    const formats = value
+      .split(',')
+      .map((f) => f.trim().replace(/^\./, ''))
+      .filter((f) => f.length > 0);
+    config[field] = formats;
+    updateConfig(field, formats);
+  }
 </script>
 
 <div class="config-panel">
@@ -170,9 +180,9 @@
             <input
               id="img-formats"
               type="text"
-              bind:value={config.imgFormats}
+              value={(config.imgFormats || []).join(', ')}
               placeholder="jpg, png, gif"
-              on:change={() => updateConfig('imgFormats', config.imgFormats)}
+              on:change={(e) => updateFormats('imgFormats', e.target.value)}
             />
           </div>
 
@@ -181,9 +191,9 @@
             <input
               id="video-formats"
               type="text"
-              bind:value={config.videoFormats}
+              value={(config.videoFormats || []).join(', ')}
               placeholder="mp4, avi, mov"
-              on:change={() => updateConfig('videoFormats', config.videoFormats)}
+              on:change={(e) => updateFormats('videoFormats', e.target.value)}
             />
           </div>
 
@@ -192,9 +202,9 @@
             <input
               id="raw-formats"
               type="text"
-              bind:value={config.rawFormats}
+              value={(config.rawFormats || []).join(', ')}
               placeholder="arw, cr2, nef"
-              on:change={() => updateConfig('rawFormats', config.rawFormats)}
+              on:change={(e) => updateFormats('rawFormats', e.target.value)}
             />
           </div>
         </div>
